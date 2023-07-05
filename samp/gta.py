@@ -10,6 +10,7 @@ import win32api
 import win32con
 import win32process
 import win32event
+from win32ui import GetForegroundWindow
 from winnt import NULL, MEM_RELEASE, MEM_COMMIT, MEM_RESERVE, PAGE_EXECUTE_READWRITE
 
 from samp.exceptions import InvalidArgumentError
@@ -143,6 +144,13 @@ class GtaInstance:
 
         return None
 
+    @property
+    def is_active(self) -> bool:
+        active_window = GetForegroundWindow()
+        _, active_pid = win32process.GetWindowThreadProcessId(active_window.GetSafeHwnd())
+
+        return active_pid == self.process.pid
+
     def call_with_params(self, func_addr, args: list, cleanup_stack: bool = True, wait_timeout: int = 0):
         args_number = len(args)
         buffer_length = args_number * 5 + 5 + 1  # 5 * push + call + ret
@@ -187,7 +195,7 @@ class GtaInstance:
             self.gta_handle, None, 0, self._thread_entry_point, 0, 0)
 
         win32event.WaitForSingleObject(thread_handle, 0)
-        sleep(0.1)
+        sleep(0.2)
 
         win32api.CloseHandle(thread_handle)
 

@@ -4,12 +4,22 @@ import inspect
 
 from .keys import KeyCombination
 from .listeners.shortcuts import ShortcutListener
+from .raw_event import RawEvent
 from .utils import classproperty
 
 
 class BaseEvent:
     _event_type = None
     _listener_class = None
+
+    @classmethod
+    def from_raw(cls, event: RawEvent):
+        if event.type_ != cls.__name__:
+            raise TypeError(f'Cannot construct event object from raw event of type {event.type_}')
+
+        args = event.args or []
+        kwargs = event.kwargs or {}
+        return cls(*args, **kwargs)  # noqa
 
     @classproperty
     def event_type(cls) -> str:  # noqa
@@ -34,8 +44,8 @@ class BaseEvent:
 
 class ShortcutEvent(BaseEvent):
     _event_type = 'shortcut_event'
-
     _listener_class = ShortcutListener
+
     def __init__(self, shortcut: KeyCombination):
         self.__shortcut: KeyCombination = shortcut
 
@@ -61,3 +71,6 @@ class BaseChatEvent(BaseEvent):
 
     def __hash__(self) -> int:
         return hash(self._event_type)
+
+    def __eq__(self, other: BaseEvent) -> bool:
+        return True

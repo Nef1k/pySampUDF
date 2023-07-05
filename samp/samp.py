@@ -1,8 +1,6 @@
-import math
-from time import sleep
+import logging
 
 from .gta import GtaInstance, Pointer
-from .utils import dump_bytes
 
 
 class SampAPI:
@@ -69,6 +67,8 @@ class SampAPI:
         self.gta.call_with_params(func, [
             message
         ], cleanup_stack=False)
+
+        logging.debug(f'Sent message: {message}')
 
     def show_game_text(self, text: str, t: int, text_style: int):
         self.gta.call_with_params(self.gta.samp_address + self.FUNC_SAMP_SHOW_GAME_TEXT, [

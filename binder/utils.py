@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Callable
 from typing import Iterable
 
@@ -13,3 +14,7 @@ class classproperty(object):  # noqa
 
     def __get__(self, obj, owner):
         return self.f(owner)
+
+
+def sleep_ms(ms: int):
+    sleep(ms / 1000)

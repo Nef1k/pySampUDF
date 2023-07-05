@@ -1,7 +1,6 @@
 import logging
 
 from binder.binder import Binder
-from samp.gta import GtaInstance
 from samp.samp import SampAPI
 
 
@@ -17,29 +16,20 @@ def print_info(samp: SampAPI):
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
-
-    # instances = GtaInstance.discover_instances()
-    # if not instances:
-    #     raise RuntimeError(f'GTA is not running')
-    #
-    # instance = instances[0]
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='[%(asctime)s][%(levelname)s] %(message)s',
+    )
 
     Binder.autodiscover()
 
     try:
         Binder.start()
     except KeyboardInterrupt:
+        logging.info(f'Terminating...')
         Binder.stop()
-
-    # try:
-    #     instance.open()
-    #
-    #     samp = SampAPI(instance)
-    #     print_info(samp)
-    #     samp.send_message('.флекс')
-    # finally:
-    #     instance.close()
+    finally:
+        Binder.stop()
 
 
 if __name__ == '__main__':

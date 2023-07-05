@@ -21,7 +21,7 @@ class KeyCombination:
             modifiers: Optional[Iterable[Type[BaseModifier]]] = None
     ):
         self.key: Optional[Key] = key
-        self.modifiers: Set[Type[BaseModifier]] = set(modifiers) or set()
+        self.modifiers: Set[Type[BaseModifier]] = set(modifiers) if modifiers else set()
 
     def as_bindable_string(self):
         if not self.key:
@@ -31,7 +31,9 @@ class KeyCombination:
             f'<{modifier.key}>'
             for modifier in self.modifiers
         ))
-        result += f'+{self.key}'
+        if result:
+            result += '+'
+        result += f'{self.key}'
         return result
 
     def __add__(self, other: Union[str, int, Key, Type[BaseModifier], KeyCombination]) -> KeyCombination:
@@ -111,24 +113,32 @@ class Ctrl(BaseModifier):
 
 
 class LCtrl(BaseModifier):
-    _key = 'lctrl'
+    _key = 'ctrl_l'
 
 
 class RCtrl(BaseModifier):
-    _key = 'ctrl'
+    _key = 'ctrl_r'
+
+
+class Alt(BaseModifier):
+    _key = 'alt'
 
 
 class LAlt(BaseModifier):
-    _key = 'lalt'
+    _key = 'alt_l'
 
 
 class RAlt(BaseModifier):
-    _key = 'ralt'
+    _key = 'alt_r'
+
+
+class Shift(BaseModifier):
+    _key = 'shift'
 
 
 class LShift(BaseModifier):
-    _key = 'lshift'
+    _key = 'shift_l'
 
 
 class RShift(BaseModifier):
-    _key = 'rshift'
+    _key = 'shift_r'
