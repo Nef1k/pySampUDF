@@ -1,5 +1,5 @@
-from pyBinder.binder import Binder
-from pyBinder.samp import SAMP
+from .binder import Binder
+from .samp import SAMP
 
 
 class BaseDuty:

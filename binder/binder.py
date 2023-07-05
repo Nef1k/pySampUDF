@@ -1,64 +1,80 @@
 import importlib
-import inspect
 import logging
 import os
 import pkgutil
 import sys
+from collections import defaultdict
 from functools import partial
-from typing import Callable
+from typing import Callable, Type, List
 from typing import Dict
 from typing import Optional
 from typing import Union
 
 from pynput.keyboard import GlobalHotKeys
 
-from pyBinder.keys import KeyCombination
+from .events import ShortcutEvent, BaseEvent
+from .keys import KeyCombination
+from .listeners.base import BaseListener
 
 
 class Binder:
     _bind_map: Dict[KeyCombination, Callable] = {}
-
-    def __init__(self):
-        self.is_active = True
-        self.listener: Optional[GlobalHotKeys] = None
+    listeners: Dict[
+        Type[BaseListener],
+        BaseListener] = {}
+    handlers: Dict[BaseEvent, List[Callable]] = defaultdict(list)
 
     @classmethod
     def bind(
             cls,
             key_combination: Union[KeyCombination, str]
     ):
-        pass
+        if isinstance(key_combination, str):
+            event = ShortcutEvent(KeyCombination(key=key_combination))
+        else:
+            event = ShortcutEvent(key_combination)
+        return cls.on(event)
 
     @classmethod
     def on(
             cls,
             event,
     ):
+        def decorator(func):
+            cls.raw_bind(event, func)
+            return func
+
+        return decorator
+
+    @classmethod
+    def raw_bind(cls, event: BaseEvent, handler: Callable):
+        logging.info(f'Registered event "{str(event)}" with handler {handler.__name__}')
+        cls.handlers[event].append(handler)
+        cls._ensure_event_listener(event)
+
+    @classmethod
+    def start(cls):
+        if not cls.listeners:
+            logging.critical(f'No listeners registered. Try subscribing on some events')
+            return
+
+        for listener in cls.listeners.values():
+            listener.start()
+
+    @classmethod
+    def stop(cls):
+        # TODO: implement Ctrl+C stop
+
+    @classmethod
+    def pause(cls):
         pass
 
-    @property
-    def is_listening(self) -> bool:
-        return self.listener is not None and self.listener.running
+    @classmethod
+    def resume(cls):
+        pass
 
-    def start(self):
-        self.listener = GlobalHotKeys({
-            combination.as_bindable_string(): partial(self._handle_shortcut,
-                                                      combination)
-            for combination, handlers in self._bind_map.items()
-        })
-
-        self.resume()
-
-    def stop(self):
-        self.pause()
-
-    def pause(self):
-        self.is_active = False
-
-    def resume(self):
-        self.is_active = True
-
-    def autodiscover(self):
+    @classmethod
+    def autodiscover(cls):
         main_module_path = sys.modules['__main__'].__file__
 
         modules = (
@@ -68,7 +84,7 @@ class Binder:
         )
         for module in modules:
             module_full_path = os.path.abspath(os.path.join(
-                module.module_finder.path,
+                module.module_finder.path,  # noqa
                 f'{module.name}.py'
             ))
             if module_full_path == main_module_path:
@@ -81,5 +97,29 @@ class Binder:
                 continue
             logging.info(f'Loaded profile {module.name}')
 
-    def _handle_shortcut(self, combination: KeyCombination):
-        print(f'Combination: {combination}')
+    @classmethod
+    def _ensure_event_listener(cls, event: BaseEvent):
+        listener_class = event.listener_class
+        if not listener_class:
+            logging.warning(f'Event of type {event.__class__.__name__} has not listener attached')
+            return
+
+        listener: BaseListener
+        if listener_class not in cls.listeners:
+            cls.listeners[listener_class] = listener = listener_class(cls._handle_event)  # noqa
+            logging.info(f'Registered new listener: {listener_class.__name__}')
+        else:
+            listener = cls.listeners[listener_class]
+
+        listener.subscribe_event(event)
+
+    @classmethod
+    def _handle_event(cls, type_, *args, **kwargs):
+        event_class = list(filter(lambda e: e.__class__.__name__ == type_, cls.handlers.keys()))
+        if not event_class:
+            return
+        event_class = event_class[0].__class__
+        event = event_class(*args, **kwargs)
+        handlers = cls.handlers[event]
+        for handler in handlers:
+            handler(cls)

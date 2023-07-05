@@ -9,7 +9,7 @@ from typing import Union
 
 from pynput.keyboard import Key
 
-from pyBinder.utils import classproperty
+from .utils import classproperty
 
 
 class KeyCombination:

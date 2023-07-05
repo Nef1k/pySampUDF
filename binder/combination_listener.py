@@ -5,8 +5,8 @@ from typing import List
 
 from pynput.keyboard import Key
 
-from pyBinder.keyboard_listener import KeyboardListener
-from pyBinder.keys import KeyCombination
+from .keyboard_listener import KeyboardListener
+from .keys import KeyCombination
 
 
 class CombinationListener:

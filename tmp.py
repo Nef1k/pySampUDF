@@ -4,12 +4,12 @@ from time import sleep
 from pynput import keyboard
 from pynput.keyboard import Key
 
-from pyBinder.binder import Binder
-from pyBinder.combination_listener import CombinationListener
-from pyBinder.keyboard_listener import KeyboardListener
-from pyBinder.keys import LAlt
-from pyBinder.keys import LCtrl
-from pyBinder.keys import RShift
+from binder.binder import Binder
+from binder.combination_listener import CombinationListener
+from binder.keyboard_listener import KeyboardListener
+from binder.keys import LAlt
+from binder.keys import LCtrl
+from binder.keys import RShift
 
 
 def handle_key_press(key):
@@ -29,10 +29,10 @@ def main():
 
     a = LCtrl + LAlt + RShift + 'g' + 'a'
 
-    print(a)
+    # print(a)
 
-    # binder = Binder()
-    # binder.autodiscover()
+    binder = Binder()
+    binder.autodiscover()
 
     # keyboard_listener = KeyboardListener()
     # listener = CombinationListener(keyboard_listener)

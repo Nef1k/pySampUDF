@@ -1,12 +1,12 @@
-from time import sleep
+import logging
 
-from dummy import execute_dummy
+from binder.binder import Binder
 from samp.gta import GtaInstance
 from samp.samp import SampAPI
 
 
 def print_info(samp: SampAPI):
-    print(f'Info we got so far:')
+    print(f'Attached to SAMP instance:')
     print(f'  Server host: {samp.get_server_ip()}:{samp.get_server_port()}')
     print(f'  Server name: {samp.get_server_name()}')
     print(f'  Username: {samp.get_samp_username()}')
@@ -17,21 +17,29 @@ def print_info(samp: SampAPI):
 
 
 def main():
-    instances = GtaInstance.discover_instances()
-    if not instances:
-        raise RuntimeError(f'GTA is not running')
+    logging.basicConfig(level=logging.INFO)
 
-    instance = instances[0]
+    # instances = GtaInstance.discover_instances()
+    # if not instances:
+    #     raise RuntimeError(f'GTA is not running')
+    #
+    # instance = instances[0]
+
+    Binder.autodiscover()
 
     try:
-        instance.open()
+        Binder.start()
+    except KeyboardInterrupt:
+        Binder.stop()
 
-        samp = SampAPI(instance)
-        print_info(samp)
-        samp.send_message('.флекс')
-
-    finally:
-        instance.close()
+    # try:
+    #     instance.open()
+    #
+    #     samp = SampAPI(instance)
+    #     print_info(samp)
+    #     samp.send_message('.флекс')
+    # finally:
+    #     instance.close()
 
 
 if __name__ == '__main__':
